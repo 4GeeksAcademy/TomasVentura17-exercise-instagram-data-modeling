@@ -7,45 +7,40 @@ from eralchemy2 import render_er
 
 Base = declarative_base()
 
-class User(Base):
-    __tablename__ = 'user'
-    # Here we define columns for the table person
-    # Notice that each column is also a normal Python instance attribute.
-    id = Column(Integer, primary_key=True)
+class Users(Base):
+    __tablename__ = 'users'
+    user_id = Column(Integer, primary_key=True)
     user_name = Column(String(250), nullable=False)
+    first_name = Column(String(250), nullable=False)
+    last_name = Column(String(250), nullable=False)
+    email = Column(String(250), nullable=False)
     password = Column(String(250), nullable=False)
-    favorites_id = Column(Integer, ForeignKey('favorites.id'))
-
-class Favorites(Base):
-    __tablename__ = 'favorites'
-    id = Column(Integer, primary_key=True)
-    post_id = Column(Integer, ForeignKey('post.id'))
-    post_img = Column(String(250))
-    user = relationship(User)
-
+    
 class Followers(Base):
     __tablename__ = 'followers'
-    id = Column(Integer, primary_key=True)
-    followers_id = Column(Integer, ForeignKey('followers.id'))
-    user_name = Column(String(250))
+    community_id = Column(Integer, primary_key=True) # Should it be necessary!?
+    follower_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    followed_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
 
+class Posts(Base):
+    __tablename__ = 'posts'
+    post_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
 
-class Following(Base):
-    __tablename__ = 'following'
-    id = Column(Integer, primary_key=True)
-    following_id = Column(ForeignKey('following.id'))
-    user_name = Column(String(250))
+class Media(Base):
+    __tablename__ = 'media'
+    media_id = Column(Integer, primary_key=True)
+    media_type = Column(String, nullable=False) # 'enum'!?
+    media_url = Column(String, nullable=False)
+    post_id = Column(Integer, ForeignKey('posts.post_id'), nullable=False)
 
-class Post(Base):
-     __tablename__ = 'post'
-     id = Column(Integer, primary_key=True)
-     post_id=Column(ForeignKey('post.id'))
-     location = Column(String(250))
-     img = Column(String(250))
-     description = Column(String(250))
-     likes = Column(Integer)
-     comments = Column(String(250))
-
+class Comments(Base):
+    __tablename__ = 'comments'
+    comment_id = Column(Integer, primary_key=True)
+    comment_text = Column(String)
+    author_user_id = Column(String, ForeignKey('users.user_id'), nullable=False)
+    post_id = Column(Integer, ForeignKey('posts.post_id'), nullable=False)
+    
 
 def to_dict(self):
         return {}
