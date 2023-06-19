@@ -1,49 +1,75 @@
 import os
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy import Column, ForeignKey, Integer, String, Enum
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine
 from eralchemy2 import render_er
 
 Base = declarative_base()
 
-class Users(Base):
-    __tablename__ = 'users'
-    user_id = Column(Integer, primary_key=True)
-    user_name = Column(String(250), nullable=False)
-    first_name = Column(String(250), nullable=False)
-    last_name = Column(String(250), nullable=False)
-    email = Column(String(250), nullable=False)
-    password = Column(String(250), nullable=False)
-    
-class Followers(Base):
-    __tablename__ = 'followers'
-    community_id = Column(Integer, primary_key=True) # Should it be necessary!?
-    follower_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
-    followed_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+class Follower(Base):
+    __tablename__ = 'follower'
+    # Here we define columns for the table person
+    # Notice that each column is also a normal Python instance attribute.
+    id = Column(Integer, primary_key=True)
+    user_from_id = Column(Integer, ForeignKey('user.id'))
+    user_to_id = Column(Integer, ForeignKey('user.id'))
 
-class Posts(Base):
-    __tablename__ = 'posts'
-    post_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    user = relationship("User", back_populates = "follower")
+
+class User(Base):
+    __tablename__ = 'user'
+    # Here we define columns for the table address.
+    # Notice that each column is also a normal Python instance attribute.
+    id = Column(Integer, primary_key=True)
+    username = Column(String, nullable=False, unique=True, index=True)
+    firstname = Column(String, nullable=False)
+    lastname = Column(String, nullable=True)
+    email = Column(String, nullable=False, unique=True)
+
+    follower = relationship("Follower", back_populates = "user")
+    post = relationship("Post", back_populates = "user")
+    comment = relationship("Comment", back_populates = "user")
+
+
+    def to_dict(self):
+        return {}
 
 class Media(Base):
     __tablename__ = 'media'
-    media_id = Column(Integer, primary_key=True)
-    media_type = Column(String, nullable=False) # 'enum'!?
-    media_url = Column(String, nullable=False)
-    post_id = Column(Integer, ForeignKey('posts.post_id'), nullable=False)
+    # Here we define columns for the table person
+    # Notice that each column is also a normal Python instance attribute.
+    id = Column(Integer, primary_key=True)
+    url = Column(String, nullable=False)
+    post_id = Column(Integer, ForeignKey('post.id'))
 
-class Comments(Base):
+    post = relationship("Post", back_populates = "media")
+
+class Post(Base):
+    __tablename__ = 'post'
+    # Here we define columns for the table person
+    # Notice that each column is also a normal Python instance attribute.
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'))
+
+    user = relationship("User", back_populates = "post")
+    media = relationship("Media", back_populates = "post")
+    comment = relationship("Comment", back_populates = "post")
+
+
+class Comment(Base):
     __tablename__ = 'comments'
-    comment_id = Column(Integer, primary_key=True)
-    comment_text = Column(String)
-    author_user_id = Column(String, ForeignKey('users.user_id'), nullable=False)
-    post_id = Column(Integer, ForeignKey('posts.post_id'), nullable=False)
-    
+    # Here we define columns for the table person
+    # Notice that each column is also a normal Python instance attribute.
+    id = Column(Integer, primary_key=True)
+    comment_text = Column(String, nullable=False)
+    author_id = Column(Integer, ForeignKey('user.id'))
+    post_id = Column(Integer, ForeignKey('post.id'))
 
-def to_dict(self):
-        return {}
+    user = relationship("User", back_populates = "comment")
+    post = relationship("Post", back_populates = "comment")
+
 
 ## Draw from SQLAlchemy base
 try:
